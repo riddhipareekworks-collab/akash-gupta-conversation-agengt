@@ -1,0 +1,34 @@
+{
+  "reviewedAt": "2026-10-15",
+  "facts": [
+    {
+      "text": "Aakash Gupta is a stand-up comedian and Comicstaan Season 2 winner.",
+      "source": "https://www.eastvillecomedy.com/comedians/aakash-gupta"
+    }
+  ],
+  "links": {
+    "official": "https://linktr.ee/theskygupta",
+    "video": "https://www.youtube.com/watch?v=KBZfnt80s54",
+    "channel": "https://www.youtube.com/channel/UCAYum5hCyfkSH5T3vSD_kwQ"
+  },
+  "videos": [
+    {
+      "title": "Sarojini Nagar",
+      "url": "https://www.youtube.com/watch?v=KBZfnt80s54",
+      "source": "https://linktr.ee/theskygupta",
+      "political": false
+    }
+  ],
+  "liveBooking": false,
+  "humanHandoff": false,
+  "verifiedEventSupport": null,
+  "unknown": [
+    "confirmed upcoming events",
+    "live prices and availability",
+    "seating maps",
+    "age policies",
+    "entry cutoffs",
+    "venue addresses",
+    "booking-platform support for a specific purchase"
+  ]
+}

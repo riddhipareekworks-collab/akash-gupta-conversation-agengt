@@ -1,0 +1,9 @@
+dist/
+site.tar.gz
+.env.local
+chat-rules-preview.jpg
+chrome-welcome.png
+
+.env*
+*.swp
+node_modules/
