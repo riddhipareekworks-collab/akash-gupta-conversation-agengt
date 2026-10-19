@@ -7,6 +7,7 @@ import { loadConfig } from './config.mjs';
 import { createPool, createDatabase, migrate } from './postgres.mjs';
 import { createStorage } from './storage.mjs';
 import { createAuth } from './auth.mjs';
+import { transferRoutes } from './transfer.mjs';
 
 export function createServer(config, pool, bucket, app = worker) {
   const env = { ...config, DB:createDatabase(pool), BUCKET:bucket }, auth = createAuth(config,pool);
@@ -22,7 +23,7 @@ export function createServer(config, pool, bucket, app = worker) {
       }
       const chunks=[]; let size=0;
       // Existing uploads allow 3 MB images plus multipart overhead; previews allow 2.1 MB.
-      const limit = url.pathname === '/login' ? 8192 : 4 * 1024 * 1024;
+      const limit = url.pathname === '/login' ? 8192 : url.pathname==='/api/admin/import' ? 20*1024*1024 : 4 * 1024 * 1024;
       if (Number(incoming.headers['content-length'] || 0) > limit) { outgoing.writeHead(413).end('Request too large.'); incoming.resume(); return; }
       for await (const chunk of incoming) {
         size += chunk.length;
@@ -36,7 +37,7 @@ export function createServer(config, pool, bucket, app = worker) {
       const forwarded = incoming.headers['x-forwarded-for'];
       const ip = config.RENDER === 'true' && typeof forwarded === 'string' ? forwarded.split(',').at(-1).trim() : incoming.socket.remoteAddress;
       const access = await auth(request,ip);
-      const response = access.response || await app.fetch(access.request,env);
+      const response = access.response || await transferRoutes(access.request,pool,config) || await app.fetch(access.request,env);
       outgoing.statusCode = response.status;
       for (const [key,value] of response.headers) outgoing.setHeader(key,value);
       outgoing.setHeader('X-Content-Type-Options','nosniff');

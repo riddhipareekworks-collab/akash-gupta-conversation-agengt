@@ -45,6 +45,9 @@ Bundled portraits/posters are served by the existing application and deploy with
 
 ## Existing data migration
 
+The protected `/admin/transfer` page accepts an `aakash-backup-v1` JSON backup from the previous site. It merges sessions and messages without replacing new conversations, restores settings and referenced images, and recognizes repeated imports. Message IDs are reassigned to avoid collisions. Imports are transactional and available only after owner login. Backups contain private transcripts and should never be committed.
+
+
 New infrastructure starts empty. Source code does not contain saved chat transcripts, owner settings or uploaded reaction files. Do not assume these are migrated by deploying.
 
 Prepare an access-restricted local export directory (never commit it):
