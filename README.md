@@ -1,30 +1,73 @@
-# Aakash Gupta fan homepage
+# Aakash Gupta conversational agent
 
-Existing Worker ESM site with a floating conversational guide, owner-only controls, timestamped transcripts and in-chat demo checkout. It uses the existing server-side OpenAI Responses connection; API secrets are never included in browser source.
+Existing website and chatbot, now runnable as a Node.js web service on Render with Neon PostgreSQL and Cloudflare R2. The UI and conversation logic are preserved.
 
-## Chat and owner controls
+## Deploy the existing Render service
 
-The launcher opens a floating window. The 0–10 **Scale of Akash Gupta** defaults to 8, can change during a session, and controls original humour and conversational energy. Language remains independent. High empathy overrides humour. Minimise/reopen preserves the DOM; refresh restores the authenticated server transcript and tab preferences. Tab ownership checks separate duplicated tabs.
+Repository: `riddhipareekworks-collab/akash-gupta-conversation-agengt`
+Branch: `main`
+Root directory: blank
+Build command: `npm ci --include=dev && npm run build`
+Start command: `npm start`
+Health check: `/healthz`
+Node: 24.x (specified in package.json)
 
-`/admin` has five editable sections: Persona, Tone, Empathy Stages, Happy Paths, Scope. Persona and Tone support 5,000 Unicode words each. Four editable scale bands, all five empathy stages/ranges/examples, four flexible happy-path stages and all three scope fields build the effective prompt on every turn. Preview uses unsaved settings without changing the live configuration. Existing configurations migrate without resetting owner text or examples. Older admin clients preserve added fields when saving.
+`render.yaml` supports new Blueprint deployments. For the already-created service, enter these settings in its dashboard; importing a Blueprint may create a duplicate service.
 
-Owner configuration persists in `BUCKET` (R2). `ADMIN_OWNER_EMAIL` protects the admin routes using the trusted Sites identity header. `/admin/sessions` lists, renames and exports stored transcripts. Scope, factual accuracy, political restrictions and identity boundaries remain enforced independently of the personality scale. Edited scope is checked separately before fulfilment and before demo checkout. Owner-excluded requests receive a grounded redirection instead of model-provided excluded facts/actions. If the scope check cannot complete, the action is withheld rather than assumed permitted.
+## Environment settings
 
-## Demo booking
+Set these in Render's Environment tab. Never commit values or put them in browser JavaScript.
 
-Booking intent provides **Book Tickets**. The modal prefills known city/date/count, selects a maintained event, collects email, and reviews a summary before **Proceed to Checkout**. Only available future listings may be selected. The listed starting price is explicitly used as a demo unit price; no unprovided real categories or prices are invented.
+| Name | Purpose |
+| --- | --- |
+| DATABASE_URL | Neon PostgreSQL connection string, retaining its TLS parameters |
+| OPENAI_API_KEY | Existing server-side OpenAI key |
+| ADMIN_OWNER_EMAIL | Owner login email |
+| ADMIN_PASSWORD | Owner password, at least 16 characters |
+| SESSION_SECRET | Random secret of at least 32 characters |
+| R2_ENDPOINT | Bucket's S3 endpoint |
+| R2_BUCKET | Bucket name |
+| R2_ACCESS_KEY_ID | Bucket-scoped read/write credential |
+| R2_SECRET_ACCESS_KEY | Matching secret |
+| SITE_ACCESS | `private` (default); use `public` only when intentionally opening the homepage/chat to everyone |
+| TEAM_PASSWORD | Optional team login password, at least 16 characters |
+| APP_ORIGIN | Optional on Render: automatically uses RENDER_EXTERNAL_URL; set when using a custom domain |
+| OPENAI_MODEL | Optional, preserves the existing model default |
 
-Checkout atomically saves a `demo_bookings` row, a linked chat receipt and updated session state in `DB` (D1). Request IDs make retries idempotent. Receipts explicitly say demo, no payment, no real ticket and no email sent. Invalid, failed or cancelled checkout never creates a successful confirmation. Email stays in the booking receipt and is not included in AI conversation input.
+Render supplies PORT and RENDER_EXTERNAL_URL. The service binds to 0.0.0.0. Database setup runs transactionally at startup with a migration lock. Startup fails with a list of missing variable names, never secret values. R2 credentials are checked on actual image reads/uploads; verify an upload before sharing.
 
-Real payments, real ticket issuance, booking-platform inventory, confirmed show feeds and confirmation email delivery need external integrations. The source dataset remains the 20 user-supplied illustrative records in `data/sample-shows.json`. Cards and checkout retain demo status without repeating implementation disclaimers in routine replies. Privacy information is at `/privacy`.
+## Login and history
 
-## Source and validation
+Visit `/login`. The owner signs in with ADMIN_OWNER_EMAIL and ADMIN_PASSWORD. Team members sign in with username `team` and TEAM_PASSWORD; they cannot access `/admin`, `/admin/sessions`, or admin APIs. The default private setting protects the entire website. `/logout` signs out that device. Cookies last eight hours and are HttpOnly, SameSite=Lax, and Secure on HTTPS. Changing passwords or SESSION_SECRET invalidates existing sessions. Login attempts are limited in PostgreSQL, including across restarts. Shared team credentials are intended for a small trusted team; individual accounts can be added later.
 
-- `worker/index.js`: existing pages, shared agent planner, settings, session APIs, demo booking and embedded supplied reaction image.
-- `db/schema.ts`, `drizzle/`: append-only generated schema migrations. Sites applies the packaged migration bundle before deploying the Worker.
-- `tests/`: request-level SQLite/D1 tests for settings, boundaries, context, recovery, isolation and checkout. Live AI and browser acceptance checks supplement these.
+Render ignores incoming Sites identity headers. Only a verified admin cookie can establish owner access. The original Cloudflare version's owner header is still supported by the worker, behind the Node authentication adapter.
 
-Run `npm test`, then `npm run build` and `npm run validate`. Publish using the Sites source workflow and retain the existing private audience.
+## Assets and persistence
 
-Photo/bio: https://www.eastvillecomedy.com/comedians/aakash-gupta
-Official links: https://linktr.ee/theskygupta
+Bundled portraits/posters are served by the existing application and deploy with the repository. Reaction uploads go to the configured private R2 bucket; the application serves their immutable image URLs. Chat sessions, messages, timestamps, planning state, receipts, persona, empathy, happy paths and reaction settings persist in PostgreSQL. No runtime uploads or transcripts rely on Render's temporary filesystem. The booking experience remains simulated; no real payment/ticket/email is produced.
+
+## Existing data migration
+
+New infrastructure starts empty. Source code does not contain saved chat transcripts, owner settings or uploaded reaction files. Do not assume these are migrated by deploying.
+
+Prepare an access-restricted local export directory (never commit it):
+- `database.json`: object with arrays for chat_sessions, chat_turns, chat_messages, chat_session_state, demo_bookings, using original SQL column names.
+- `settings.json`: the saved `{settings, updatedAt}` document from the current admin configuration.
+- `reaction-images/`: uploaded images under their original UUID filenames.
+
+With the destination variables loaded, run `npm run data:import -- /absolute/path/to/private-export`. The target chat tables must be empty. Inserts run in one transaction; errors roll back table writes. Image uploads may already have completed and are safe to retry. Back up and verify row counts, settings and images before switching traffic. Browser session tokens do not transfer automatically to a different domain; old transcripts remain visible in admin history after import.
+
+Keep the old site available until the new deployment is verified.
+
+## Local checks
+
+Use Node 24.x. Install with `npm ci --include=dev`.
+- `npm test`: existing chatbot regression suites (mocked model responses).
+- `npm run test:render`: real PostgreSQL engine tests via PGlite, storage adapter and HTTP/login checks, without cloud credentials.
+- `npm run build && npm run validate`: original Worker artifact checks.
+- `npm run db:migrate`: explicitly initialise the configured PostgreSQL database.
+- `node --env-file=.env.local server/index.mjs`: local start with a private env file based on `.env.example`.
+
+Cloud credentials and a successful hosted smoke test are still required to verify a live Render deployment. Local tests do not verify live Neon/R2/OpenAI accounts.
+
+The previous Cloudflare deployment notes remain in [docs/cloudflare.md](docs/cloudflare.md).

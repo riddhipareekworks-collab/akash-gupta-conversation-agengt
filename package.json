@@ -1,15 +1,27 @@
 {
-  "name": "sites-worker-esm-starter",
+  "name": "aakash-gupta-conversation-agent",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "bash scripts/build.sh",
     "validate": "node scripts/validate-artifact.mjs",
     "db:generate": "drizzle-kit generate",
-    "test": "node scripts/test.mjs"
+    "test": "node scripts/test.mjs",
+    "start": "node server/index.mjs",
+    "db:migrate": "node scripts/migrate-postgres.mjs",
+    "test:render": "node --test tests-render/*.test.mjs",
+    "data:import": "node scripts/import-data.mjs"
   },
   "devDependencies": {
     "drizzle-kit": "0.31.10",
-    "drizzle-orm": "0.45.2"
+    "drizzle-orm": "0.45.2",
+    "@electric-sql/pglite": "^0.3.14"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "dependencies": {
+    "pg": "^8.16.3",
+    "@aws-sdk/client-s3": "^3.900.0"
   }
 }

@@ -7,3 +7,9 @@ chrome-welcome.png
 .env*
 *.swp
 node_modules/
+
+!.env.example
+private-export/
+*.sqlite
+*.sqlite3
+*.db
