@@ -54,11 +54,12 @@ export async function migrate(pool) {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(817230941)');
     await client.query('CREATE TABLE IF NOT EXISTS app_migrations (version text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())');
-    const version = '001-render';
-    const applied = await client.query('SELECT version FROM app_migrations WHERE version=$1', [version]);
-    if (!applied.rowCount) {
-      await client.query(await readFile(new URL('../db/postgres/001.sql', import.meta.url), 'utf8'));
-      await client.query('INSERT INTO app_migrations(version) VALUES ($1)', [version]);
+    for (const [version,file] of [['001-render','001.sql'],['002-images','002.sql']]) {
+      const applied = await client.query('SELECT version FROM app_migrations WHERE version=$1', [version]);
+      if (!applied.rowCount) {
+        await client.query(await readFile(new URL('../db/postgres/'+file, import.meta.url), 'utf8'));
+        await client.query('INSERT INTO app_migrations(version) VALUES ($1)', [version]);
+      }
     }
     await client.query('COMMIT');
   } catch (error) { await client.query('ROLLBACK'); throw error; }

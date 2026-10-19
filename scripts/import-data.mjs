@@ -36,12 +36,12 @@ if (process.argv[1] && resolve(process.argv[1]) === new URL(import.meta.url).pat
   const pool=createPool(process.env.DATABASE_URL);
   try {
     const data=JSON.parse(await readFile(join(folder,'database.json'),'utf8'));
+    await migrate(pool);
     const storage=createStorage(pool,process.env);
     // Upload objects before importing references. Re-running uploads is safe if DB import fails.
     let files=[];try{files=await readdir(join(folder,'reaction-images'));}catch(error){if(error.code!=='ENOENT')throw error;}
     const types={png:'image/png',jpg:'image/jpeg',webp:'image/webp',gif:'image/gif'};
     for(const file of files){if(!/^[0-9a-f-]{36}\.(png|jpg|webp|gif)$/.test(file))throw new Error('Unexpected asset filename.');await storage.put('agent/reaction-images/'+file,await readFile(join(folder,'reaction-images',file)),{httpMetadata:{contentType:types[file.split('.').at(-1)]}});}
-    await migrate(pool);
     await importTables(pool,data);
     try {const settings=await readFile(join(folder,'settings.json'),'utf8');await storage.put('agent/settings.json',settings);}catch(error){if(error.code!=='ENOENT')throw error;}
     console.log('Private data import completed.');

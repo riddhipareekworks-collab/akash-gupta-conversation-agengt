@@ -47,6 +47,12 @@ test('PostgreSQL: sessions, idempotency, state, settings, image reactions, and r
     const image=await reloaded.get('agent/reaction-images/test.png');
     assert.deepEqual(new Uint8Array(await new Response(image.body).arrayBuffer()),new Uint8Array([1,2,3]));
     assert.equal(await reloaded.get('agent/reaction-images/missing.png'),null);
+    const upload=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZlSAAAAAASUVORK5CYII=','base64');
+    const uploaded=await worker.fetch(new Request(config.APP_ORIGIN+'/api/admin/reaction-images',{method:'POST',headers:{Origin:config.APP_ORIGIN,'Content-Type':'image/png','oai-authenticated-user-email':config.ADMIN_OWNER_EMAIL},body:upload}),env);
+    assert.equal(uploaded.status,201,await uploaded.clone().text());
+    const imageResult=await uploaded.json();
+    const restoredImage=await worker.fetch(new Request(config.APP_ORIGIN+imageResult.url),{...env,BUCKET:reloaded});
+    assert.equal(restoredImage.status,200);assert.equal(restoredImage.headers.get('content-type'),'image/png');
     await assert.rejects(db.batch([
       db.prepare('UPDATE chat_sessions SET nickname = ? WHERE id = ?').bind('Must roll back',a.id),
       db.prepare('INSERT INTO chat_sessions(id) VALUES (?)').bind(a.id),

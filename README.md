@@ -1,6 +1,6 @@
 # Aakash Gupta conversational agent
 
-Existing website and chatbot, now runnable as a Node.js web service on Render with Neon PostgreSQL and Cloudflare R2. The UI and conversation logic are preserved.
+Existing website and chatbot, now runnable as a Node.js web service on Render with Neon PostgreSQL. The UI and conversation logic are preserved.
 
 ## Deploy the existing Render service
 
@@ -25,16 +25,13 @@ Set these in Render's Environment tab. Never commit values or put them in browse
 | ADMIN_OWNER_EMAIL | Owner login email |
 | ADMIN_PASSWORD | Owner password, at least 16 characters |
 | SESSION_SECRET | Random secret of at least 32 characters |
-| R2_ENDPOINT | Bucket's S3 endpoint |
-| R2_BUCKET | Bucket name |
-| R2_ACCESS_KEY_ID | Bucket-scoped read/write credential |
-| R2_SECRET_ACCESS_KEY | Matching secret |
+| ASSET_STORAGE | `postgres` (default); uploaded reaction images are stored in Neon |
 | SITE_ACCESS | `private` (default); use `public` only when intentionally opening the homepage/chat to everyone |
 | TEAM_PASSWORD | Optional team login password, at least 16 characters |
 | APP_ORIGIN | Optional on Render: automatically uses RENDER_EXTERNAL_URL; set when using a custom domain |
 | OPENAI_MODEL | Optional, preserves the existing model default |
 
-Render supplies PORT and RENDER_EXTERNAL_URL. The service binds to 0.0.0.0. Database setup runs transactionally at startup with a migration lock. Startup fails with a list of missing variable names, never secret values. R2 credentials are checked on actual image reads/uploads; verify an upload before sharing.
+Render supplies PORT and RENDER_EXTERNAL_URL. The service binds to 0.0.0.0. Database setup runs transactionally at startup with a migration lock. Startup fails with a list of missing variable names, never secret values. No Cloudflare account or R2 subscription is required. Verify an image upload before sharing.
 
 ## Login and history
 
@@ -44,7 +41,7 @@ Render ignores incoming Sites identity headers. Only a verified admin cookie can
 
 ## Assets and persistence
 
-Bundled portraits/posters are served by the existing application and deploy with the repository. Reaction uploads go to the configured private R2 bucket; the application serves their immutable image URLs. Chat sessions, messages, timestamps, planning state, receipts, persona, empathy, happy paths and reaction settings persist in PostgreSQL. No runtime uploads or transcripts rely on Render's temporary filesystem. The booking experience remains simulated; no real payment/ticket/email is produced.
+Bundled portraits/posters are served by the existing application and deploy with the repository. Reaction uploads are stored as binary data in Neon, limited to 3 MB each; the application serves their immutable image URLs. Images count toward database storage usage. A future move to object storage remains available with ASSET_STORAGE=r2 and the R2_* settings shown in .env.example. Chat sessions, messages, timestamps, planning state, receipts, persona, empathy, happy paths and reaction settings persist in PostgreSQL. No runtime uploads or transcripts rely on Render's temporary filesystem. The booking experience remains simulated; no real payment/ticket/email is produced.
 
 ## Existing data migration
 
@@ -63,11 +60,11 @@ Keep the old site available until the new deployment is verified.
 
 Use Node 24.x. Install with `npm ci --include=dev`.
 - `npm test`: existing chatbot regression suites (mocked model responses).
-- `npm run test:render`: real PostgreSQL engine tests via PGlite, storage adapter and HTTP/login checks, without cloud credentials.
+- `npm run test:render`: real PostgreSQL engine tests via PGlite, PostgreSQL image storage, optional R2 adapter and HTTP/login checks, without cloud credentials.
 - `npm run build && npm run validate`: original Worker artifact checks.
 - `npm run db:migrate`: explicitly initialise the configured PostgreSQL database.
 - `node --env-file=.env.local server/index.mjs`: local start with a private env file based on `.env.example`.
 
-Cloud credentials and a successful hosted smoke test are still required to verify a live Render deployment. Local tests do not verify live Neon/R2/OpenAI accounts.
+Cloud credentials and a successful hosted smoke test are still required to verify a live Render deployment. Local tests do not verify live Neon/OpenAI accounts.
 
 The previous Cloudflare deployment notes remain in [docs/cloudflare.md](docs/cloudflare.md).
