@@ -28,7 +28,13 @@ export async function importBackup(pool,document) {
     for(const [name,allColumns] of Object.entries(tables)) {
       const columns=name==='chat_messages'?allColumns.filter(c=>c!=='id'):allColumns;
       const rows=name==='chat_messages'?[...data[name]].sort((a,b)=>a.id-b.id):data[name];
-      for(const row of rows){const result=await client.query(`INSERT INTO ${name} (${columns.join(',')}) VALUES (${columns.map((_,i)=>'$'+(i+1)).join(',')}) ON CONFLICT DO NOTHING`,columns.map(c=>row[c]??null));if(name==='chat_sessions')counts.sessions+=result.rowCount;if(name==='chat_messages')counts.messages+=result.rowCount;}
+      // Keep cloud imports fast without a network round trip for every message.
+      for(let offset=0;offset<rows.length;offset+=100){
+        const batch=rows.slice(offset,offset+100),values=batch.flatMap(row=>columns.map(c=>row[c]??null));
+        const groups=batch.map((_,row)=>'('+columns.map((_,col)=>'$'+(row*columns.length+col+1)).join(',')+')').join(',');
+        const result=await client.query(`INSERT INTO ${name} (${columns.join(',')}) VALUES ${groups} ON CONFLICT DO NOTHING`,values);
+        if(name==='chat_sessions')counts.sessions+=result.rowCount;if(name==='chat_messages')counts.messages+=result.rowCount;
+      }
     }
     for(const image of images){const result=await client.query('INSERT INTO app_images(key,content,content_type) VALUES($1,$2,$3) ON CONFLICT(key) DO NOTHING',[image.key,image.content,image.contentType]);counts.images+=result.rowCount;}
     await client.query('INSERT INTO app_settings(key,document) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET document=excluded.document,updated_at=now()',['agent/settings.json',JSON.stringify(document.settings)]);
