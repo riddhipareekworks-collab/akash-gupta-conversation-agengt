@@ -63,14 +63,18 @@ test('PostgreSQL: sessions, idempotency, state, settings, image reactions, and r
   }finally{await pool.end();}
 });
 
-test('Login: header spoofing, team isolation, expiry, CSRF, throttling, private-by-default',async()=>{
+test('Public visitors, protected admin, header spoofing, team isolation, expiry, CSRF and throttling',async()=>{
   const pool=await testPool();
   try{
     await migrate(pool);const auth=createAuth(config,pool);
     const req=(path,options={})=>new Request(config.APP_ORIGIN+path,options);
     const spoof=await auth(req('/api/admin/sessions',{headers:{'oai-authenticated-user-email':config.ADMIN_OWNER_EMAIL}}));
     assert.equal(spoof.response.status,401);
-    assert.equal((await auth(req('/'))).response.status,303);
+    for(const path of ['/','/shows','/privacy','/api/status','/api/chat/sessions','/home-tour-poster.png'])assert.ok((await auth(req(path))).request,path);
+    for(const path of ['/api/admin/settings','/api/admin/preview','/api/admin/reaction-images','/api/admin/import'])assert.equal((await auth(req(path))).response.status,401,path);
+    for(const path of ['/login','/login?next=%2F','/login?next=https%3A%2F%2Fevil.test'])assert.equal((await auth(req(path))).response.headers.get('Location'),'/',path);
+    assert.equal((await auth(req('/login?next=%2Fadmin%2Fsessions'))).response.status,200);
+    assert.equal((await auth(req('/admin'))).response.status,303);
     const adminCookie=sessionCookie('admin',config), teamCookie=sessionCookie('team',config);
     assert.ok(adminCookie.includes('HttpOnly'));assert.ok(adminCookie.includes('Secure'));
     const admin=await auth(req('/api/admin/sessions',{headers:{Cookie:adminCookie}}));

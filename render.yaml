@@ -9,8 +9,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: SITE_ACCESS
-        value: private
       - key: ASSET_STORAGE
         value: postgres
       - key: SESSION_SECRET

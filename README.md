@@ -26,7 +26,6 @@ Set these in Render's Environment tab. Never commit values or put them in browse
 | ADMIN_PASSWORD | Owner password, at least 16 characters |
 | SESSION_SECRET | Random secret of at least 32 characters |
 | ASSET_STORAGE | `postgres` (default); uploaded reaction images are stored in Neon |
-| SITE_ACCESS | `private` (default); use `public` only when intentionally opening the homepage/chat to everyone |
 | TEAM_PASSWORD | Optional team login password, at least 16 characters |
 | APP_ORIGIN | Optional on Render: automatically uses RENDER_EXTERNAL_URL; set when using a custom domain |
 | OPENAI_MODEL | Optional, preserves the existing model default |
@@ -35,7 +34,7 @@ Render supplies PORT and RENDER_EXTERNAL_URL. The service binds to 0.0.0.0. Data
 
 ## Login and history
 
-Visit `/login`. The owner signs in with ADMIN_OWNER_EMAIL and ADMIN_PASSWORD. Team members sign in with username `team` and TEAM_PASSWORD; they cannot access `/admin`, `/admin/sessions`, or admin APIs. The default private setting protects the entire website. `/logout` signs out that device. Cookies last eight hours and are HttpOnly, SameSite=Lax, and Secure on HTTPS. Changing passwords or SESSION_SECRET invalidates existing sessions. Login attempts are limited in PostgreSQL, including across restarts. Shared team credentials are intended for a small trusted team; individual accounts can be added later.
+Visitors open the homepage and chatbot directly, without an account. Visit `/admin` to sign in with ADMIN_OWNER_EMAIL and ADMIN_PASSWORD. `/admin`, `/admin/sessions`, the transfer page and all admin APIs remain protected. Old homepage login links redirect to `/`. A legacy SITE_ACCESS setting in Render no longer gates visitor access. `/logout` signs out that device. Cookies last eight hours and are HttpOnly, SameSite=Lax, and Secure on HTTPS. Changing passwords or SESSION_SECRET invalidates existing sessions. Login attempts are limited in PostgreSQL, including across restarts. Shared team credentials are intended for a small trusted team; individual accounts can be added later.
 
 Render ignores incoming Sites identity headers. Only a verified admin cookie can establish owner access. The original Cloudflare version's owner header is still supported by the worker, behind the Node authentication adapter.
 
