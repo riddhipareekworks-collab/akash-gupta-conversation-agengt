@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createTestDb} from './database-test-helper.mjs';
+const source=await readFile(new URL('../worker/index.js',import.meta.url),'utf8');
+const {default:worker,defaults,validReactions,applyReactionRules}=await import('data:text/javascript;base64,'+Buffer.from(source+'\nexport {defaults,validReactions,applyReactionRules}').toString('base64'));
+const rules=JSON.parse(await readFile(new URL('../assets/reaction-pack/rules.json',import.meta.url),'utf8'));
+assert.equal(validReactions(rules),true);
+const settings={...structuredClone(defaults),reactions:[...rules,...defaults.reactions]};
+const state=()=>({personaScale:8,reactionUsed:[],planning:{},currentIntent:'other'});
+const result=(scope='aakash',language='English')=>({scope,language,reply:'I do not have a verified discount code.',empathyScore:1});
+for(const language of ['English','Hindi','Tamil','Marathi']){const o=result('other_comedian',language);applyReactionRules(o,settings,state(),'Videos by another performer');assert.equal(o.reactionItems[0].ruleId,'other-comedian-sticker');assert.equal(o.reaction,undefined);}
+const discount=result('aakash','Tamil');discount.requestKind='discount';applyReactionRules(discount,settings,state(),'தள்ளுபடி உள்ளதா?');assert.equal(discount.reactionItems[0].ruleId,'discount-sticker');
+const english=result();applyReactionRules(english,settings,state(),'Any discount?');assert.match(english.reply,/heart/);
+const offState=state(),off=result('off_topic');applyReactionRules(off,settings,offState,'How is the weather?');assert.equal(off.reactionItems[0].ruleId,'off-topic-sticker');applyReactionRules(off,settings,offState,'Help with gardening');assert.equal(off.reactionItems.length,0);
+const welcome=result();welcome.audience='unfamiliar';applyReactionRules(welcome,settings,state(),"I don't know Aakash");assert.equal(welcome.reactionItems.length,0);
+const upset=result();upset.empathyScore=9;applyReactionRules(upset,settings,state(),'I am distressed and cannot afford this, any discount?');assert.equal(upset.reactionItems.length,0);
+const env={DB:createTestDb(),BUCKET:{get:async key=>key==='agent/settings.json'?{json:async()=>({settings})}:null}};
+const post=(path,body)=>worker.fetch(new Request('https://test.local'+path,{method:'POST',headers:{Origin:'https://test.local'},body:JSON.stringify(body)}),env);
+const session=(await (await post('/api/chat/sessions',{surface:'live',greeting:'Welcome'})).json()).session;
+const body={session,requestId:crypto.randomUUID(),showId:'AG002',city:'Pune',date:'2026-11-14',quantity:1,category:'standard',email:'qa@example.com'};
+let r=await post('/api/bookings/demo',{...body,quantity:0});assert.equal(r.status,400);
+r=await post('/api/bookings/demo',body);assert.equal(r.status,201);const receipt=(await r.json()).receipt;assert.equal(receipt.reactionItems[0].ruleId,'booking-thanks-sticker');
+const duplicate=await (await post('/api/bookings/demo',body)).json();assert.deepEqual(duplicate.receipt.reactionItems,receipt.reactionItems);
+const history=await (await post('/api/chat/history',{session})).json();const saved=history.messages.find(m=>m.kind==='booking_receipt');assert.deepEqual(saved.metadata.reactionItems,receipt.reactionItems);
+console.log('PASS PDF reactions: multilingual competitors/discounts, occasional off-topic, kindness guards, saved confirmation only and idempotent history.');

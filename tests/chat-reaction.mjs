@@ -18,7 +18,7 @@ for(const tone of ['normal','akash']){
 }
 const english=await ask('Show me other comedy shows','English','normal');assert.equal(english.reaction,'other-comedian-shows');assert.match(english.reply,/This platform focuses only on Aakash Gupta/);
 const classified=await ask('Tickets for a different performer please','English');assert.equal(classified.reaction,'other-comedian-shows');assert.ok(!classified.reply.includes('Model output'));
-const video=await ask('Samay Raina ke videos chahiye');assert.equal(video.reaction,undefined);
+const video=await ask('Samay Raina ke videos chahiye');assert.equal(video.reaction,'other-comedian-shows');
 const image=await base.fetch(new Request('https://test.local/chat-reaction.png'),{});assert.equal(image.headers.get('Content-Type'),'image/png');assert.equal(createHash('sha256').update(Buffer.from(await image.arrayBuffer())).digest('hex'),'0d2abe7f84291aaf173e641a5b05624aa9dcd31ff8df2bf0c023290e54522fbb');
 const saved=await env.DB.prepare("SELECT metadata_json FROM chat_messages WHERE role='assistant' AND metadata_json LIKE '%other-comedian-shows%' LIMIT 1").first();assert.equal(JSON.parse(saved.metadata_json).reaction,'other-comedian-shows');
 const home=await (await base.fetch(new Request('https://test.local/'),{})).text();assert.ok(home.indexOf('reactionBubble(d.reaction);')<home.indexOf('const b=bubble(d.reply)'));assert.match(home,/img\.src='\/chat-reaction\.png'/);

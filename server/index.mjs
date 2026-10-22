@@ -8,6 +8,7 @@ import { createPool, createDatabase, migrate } from './postgres.mjs';
 import { createStorage } from './storage.mjs';
 import { createAuth } from './auth.mjs';
 import { transferRoutes } from './transfer.mjs';
+import { installReactionPack } from './reaction-pack.mjs';
 
 export function createServer(config, pool, bucket, app = worker) {
   const env = { ...config, DB:createDatabase(pool), BUCKET:bucket }, auth = createAuth(config,pool);
@@ -60,7 +61,7 @@ export async function start() {
   catch (error) { console.error(error.message); process.exitCode=1; return; }
   const pool=createPool(config.DATABASE_URL);
   pool.on('error',()=>console.error('An idle database connection failed.'));
-  try { await migrate(pool); }
+  try { await migrate(pool); await installReactionPack(pool); }
   catch { console.error('Database setup failed. Check DATABASE_URL, database permissions, and connectivity.'); await pool.end(); process.exitCode=1; return; }
   const server=createServer(config,pool,createStorage(pool,config));
   server.requestTimeout=180000; server.headersTimeout=15000;
