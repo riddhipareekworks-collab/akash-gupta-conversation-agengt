@@ -11,10 +11,17 @@ import {installReactionPack} from './reaction-pack.mjs';
 export function createVercelHandler({readEnv=()=>process.env,makePool=createPool,app=worker}={}) {
   let ready;
   async function initialize() {
-    const config=loadConfig(readEnv()),pool=makePool(config.DATABASE_URL,config);
+    let config;
+    try {config=loadConfig(readEnv());}
+    catch(error){console.error('Vercel configuration invalid: '+error.message);throw new Error('Invalid server configuration.');}
+    const pool=makePool(config.DATABASE_URL,config);
     pool.on?.('error',()=>console.error('An idle database connection failed.'));
     try {await migrate(pool);await installReactionPack(pool);}
-    catch(error){await pool.end();throw error;}
+    catch(error){
+      const code=/^[A-Z0-9_]{2,50}$/.test(error.code||'')?error.code:'DATABASE_SETUP';
+      console.error('Vercel database initialization failed; code: '+code);
+      await pool.end();throw new Error('Database setup failed.');
+    }
     return {config,pool,env:{...config,DB:createDatabase(pool,config),BUCKET:createStorage(pool,config)},auth:createAuth(config,pool)};
   }
   return async function fetch(request) {
