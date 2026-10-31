@@ -30,7 +30,7 @@ export function safeNext(value) {
 }
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function loginPage(next, error = '') {
-  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in | Aakash Gupta</title><style>body{font:17px/1.5 system-ui;background:#f6f2e9;color:#252522;max-width:420px;margin:12vh auto;padding:24px}form{display:grid;gap:16px}input,button{font:inherit;padding:14px;border:1px solid #d9d4ca;border-radius:12px}button{background:#ed482d;color:white;cursor:pointer}label{display:grid;gap:6px}.error{color:#a82e1c}</style><h1>Welcome backstage</h1><p>Sign in to continue. Team members can use “team” as their username.</p>${error ? `<p class="error" role="alert">${escape(error)}</p>` : ''}<form method="post" action="/login"><input type="hidden" name="next" value="${escape(next)}"><label>Email or username<input name="username" autocomplete="username" maxlength="254" required></label><label>Password<input name="password" type="password" autocomplete="current-password" maxlength="512" required></label><button>Sign in</button></form></html>`, {status: error ? 401 : 200, headers: {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
+  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in | Aakash Gupta</title><style>body{font:17px/1.5 system-ui;background:#f6f2e9;color:#252522;max-width:420px;margin:12vh auto;padding:24px}form{display:grid;gap:16px}input,button{font:inherit;padding:14px;border:1px solid #d9d4ca;border-radius:12px}button{background:#ed482d;color:white;cursor:pointer}label{display:grid;gap:6px}.error{color:#a82e1c}</style><h1>Welcome backstage</h1><p>Sign in to manage agent settings and view saved chats.</p>${error ? `<p class="error" role="alert">${escape(error)}</p>` : ''}<form method="post" action="/login"><input type="hidden" name="next" value="${escape(next)}"><label>Email or username<input name="username" autocomplete="username" maxlength="254" required></label><label>Password<input name="password" type="password" autocomplete="current-password" maxlength="512" required></label><button>Sign in</button></form></html>`, {status: error ? 401 : 200, headers: {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"}});
 }
 
 export function createAuth(config, pool) {
@@ -39,10 +39,16 @@ export function createAuth(config, pool) {
     if (url.pathname === '/logout') {
       if (request.method === 'GET') return { response: new Response('<!doctype html><title>Sign out</title><form method="post"><button>Sign out of this device</button></form>', {headers:{'Content-Type':'text/html','Cache-Control':'no-store'}}) };
       if (request.method !== 'POST' || request.headers.get('origin') !== config.APP_ORIGIN) return {response: new Response('Forbidden', {status:403})};
-      return {response: new Response(null, {status:303,headers:{Location:'/login','Set-Cookie':`${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${config.APP_ORIGIN.startsWith('https:') ? '; Secure' : ''}`}})};
+      return {response: new Response(null, {status:303,headers:{Location:'/','Set-Cookie':`${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${config.APP_ORIGIN.startsWith('https:') ? '; Secure' : ''}`}})};
     }
     if (url.pathname === '/login') {
-      if (request.method === 'GET') return {response:loginPage(safeNext(url.searchParams.get('next')))};
+      if (request.method === 'GET') {
+        const next=safeNext(url.searchParams.get('next'));
+        // Old homepage sign-in bookmarks should open the site, not a login form.
+        if (!/^\/admin(?:\/|$|\?)/.test(next)) return {response:new Response(null,{status:303,headers:{Location:'/','Cache-Control':'no-store'}})};
+        if (session?.role==='admin') return {response:new Response(null,{status:303,headers:{Location:next,'Cache-Control':'no-store'}})};
+        return {response:loginPage(next)};
+      }
       if (request.method !== 'POST' || request.headers.get('origin') !== config.APP_ORIGIN) return {response:new Response('Forbidden',{status:403})};
       // Database-backed throttling survives restarts and multiple Render instances.
       const key = mac(ip, config.SESSION_SECRET);
@@ -58,7 +64,7 @@ export function createAuth(config, pool) {
       return {response:new Response(null,{status:303,headers:{Location:next,'Set-Cookie':sessionCookie(role,config),'Cache-Control':'no-store'}})};
     }
     const admin = url.pathname === '/admin' || url.pathname.startsWith('/admin/') || url.pathname.startsWith('/api/admin/');
-    if ((admin && session?.role !== 'admin') || (config.SITE_ACCESS !== 'public' && !session)) {
+    if (admin && session?.role !== 'admin') {
       return {response:url.pathname.startsWith('/api/') ? Response.json({error:'Sign in to access this page.'},{status:session ? 403 : 401})
         : session ? new Response('Admin access required.', {status:403}) : new Response(null,{status:303,headers:{Location:'/login?next='+encodeURIComponent(url.pathname+url.search)}})};
     }

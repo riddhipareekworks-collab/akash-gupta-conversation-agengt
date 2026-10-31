@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {loadLocalEnv} from './env.mjs';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
@@ -7,9 +8,11 @@ import { loadConfig } from './config.mjs';
 import { createPool, createDatabase, migrate } from './postgres.mjs';
 import { createStorage } from './storage.mjs';
 import { createAuth } from './auth.mjs';
+import { transferRoutes } from './transfer.mjs';
+import { installReactionPack } from './reaction-pack.mjs';
 
 export function createServer(config, pool, bucket, app = worker) {
-  const env = { ...config, DB:createDatabase(pool), BUCKET:bucket }, auth = createAuth(config,pool);
+  const env = { ...config, DB:createDatabase(pool,config), BUCKET:bucket }, auth = createAuth(config,pool);
   return http.createServer(async (incoming, outgoing) => {
     try {
       // Canonical origin, never an untrusted Host/X-Forwarded-Host header.
@@ -22,7 +25,7 @@ export function createServer(config, pool, bucket, app = worker) {
       }
       const chunks=[]; let size=0;
       // Existing uploads allow 3 MB images plus multipart overhead; previews allow 2.1 MB.
-      const limit = url.pathname === '/login' ? 8192 : 4 * 1024 * 1024;
+      const limit = url.pathname === '/login' ? 8192 : url.pathname==='/api/admin/import' ? 20*1024*1024 : 4 * 1024 * 1024;
       if (Number(incoming.headers['content-length'] || 0) > limit) { outgoing.writeHead(413).end('Request too large.'); incoming.resume(); return; }
       for await (const chunk of incoming) {
         size += chunk.length;
@@ -36,7 +39,7 @@ export function createServer(config, pool, bucket, app = worker) {
       const forwarded = incoming.headers['x-forwarded-for'];
       const ip = config.RENDER === 'true' && typeof forwarded === 'string' ? forwarded.split(',').at(-1).trim() : incoming.socket.remoteAddress;
       const access = await auth(request,ip);
-      const response = access.response || await app.fetch(access.request,env);
+      const response = access.response || await transferRoutes(access.request,pool,config) || await app.fetch(access.request,env);
       outgoing.statusCode = response.status;
       for (const [key,value] of response.headers) outgoing.setHeader(key,value);
       outgoing.setHeader('X-Content-Type-Options','nosniff');
@@ -54,12 +57,13 @@ export function createServer(config, pool, bucket, app = worker) {
 }
 
 export async function start() {
+  loadLocalEnv();
   let config;
   try { config=loadConfig(process.env); }
   catch (error) { console.error(error.message); process.exitCode=1; return; }
-  const pool=createPool(config.DATABASE_URL);
+  const pool=createPool(config.DATABASE_URL,config);
   pool.on('error',()=>console.error('An idle database connection failed.'));
-  try { await migrate(pool); }
+  try { await migrate(pool); await installReactionPack(pool); }
   catch { console.error('Database setup failed. Check DATABASE_URL, database permissions, and connectivity.'); await pool.end(); process.exitCode=1; return; }
   const server=createServer(config,pool,createStorage(pool,config));
   server.requestTimeout=180000; server.headersTimeout=15000;

@@ -26,7 +26,6 @@ Set these in Render's Environment tab. Never commit values or put them in browse
 | ADMIN_PASSWORD | Owner password, at least 16 characters |
 | SESSION_SECRET | Random secret of at least 32 characters |
 | ASSET_STORAGE | `postgres` (default); uploaded reaction images are stored in Neon |
-| SITE_ACCESS | `private` (default); use `public` only when intentionally opening the homepage/chat to everyone |
 | TEAM_PASSWORD | Optional team login password, at least 16 characters |
 | APP_ORIGIN | Optional on Render: automatically uses RENDER_EXTERNAL_URL; set when using a custom domain |
 | OPENAI_MODEL | Optional, preserves the existing model default |
@@ -35,7 +34,7 @@ Render supplies PORT and RENDER_EXTERNAL_URL. The service binds to 0.0.0.0. Data
 
 ## Login and history
 
-Visit `/login`. The owner signs in with ADMIN_OWNER_EMAIL and ADMIN_PASSWORD. Team members sign in with username `team` and TEAM_PASSWORD; they cannot access `/admin`, `/admin/sessions`, or admin APIs. The default private setting protects the entire website. `/logout` signs out that device. Cookies last eight hours and are HttpOnly, SameSite=Lax, and Secure on HTTPS. Changing passwords or SESSION_SECRET invalidates existing sessions. Login attempts are limited in PostgreSQL, including across restarts. Shared team credentials are intended for a small trusted team; individual accounts can be added later.
+Visitors open the homepage and chatbot directly, without an account. Visit `/admin` to sign in with ADMIN_OWNER_EMAIL and ADMIN_PASSWORD. `/admin`, `/admin/sessions`, the transfer page and all admin APIs remain protected. Old homepage login links redirect to `/`. A legacy SITE_ACCESS setting in Render no longer gates visitor access. `/logout` signs out that device. Cookies last eight hours and are HttpOnly, SameSite=Lax, and Secure on HTTPS. Changing passwords or SESSION_SECRET invalidates existing sessions. Login attempts are limited in PostgreSQL, including across restarts. Shared team credentials are intended for a small trusted team; individual accounts can be added later.
 
 Render ignores incoming Sites identity headers. Only a verified admin cookie can establish owner access. The original Cloudflare version's owner header is still supported by the worker, behind the Node authentication adapter.
 
@@ -44,6 +43,9 @@ Render ignores incoming Sites identity headers. Only a verified admin cookie can
 Bundled portraits/posters are served by the existing application and deploy with the repository. Reaction uploads are stored as binary data in Neon, limited to 3 MB each; the application serves their immutable image URLs. Images count toward database storage usage. A future move to object storage remains available with ASSET_STORAGE=r2 and the R2_* settings shown in .env.example. Chat sessions, messages, timestamps, planning state, receipts, persona, empathy, happy paths and reaction settings persist in PostgreSQL. No runtime uploads or transcripts rely on Render's temporary filesystem. The booking experience remains simulated; no real payment/ticket/email is produced.
 
 ## Existing data migration
+
+The protected `/admin/transfer` page accepts an `aakash-backup-v1` JSON backup from the previous site. It merges sessions and messages without replacing new conversations, restores settings and referenced images, and recognizes repeated imports. Message IDs are reassigned to avoid collisions. Imports are transactional and available only after owner login. Backups contain private transcripts and should never be committed.
+
 
 New infrastructure starts empty. Source code does not contain saved chat transcripts, owner settings or uploaded reaction files. Do not assume these are migrated by deploying.
 
@@ -68,3 +70,7 @@ Use Node 24.x. Install with `npm ci --include=dev`.
 Cloud credentials and a successful hosted smoke test are still required to verify a live Render deployment. Local tests do not verify live Neon/OpenAI accounts.
 
 The previous Cloudflare deployment notes remain in [docs/cloudflare.md](docs/cloudflare.md).
+
+## Supabase and larger conversation memory
+
+See [Supabase setup](docs/SUPABASE_SETUP.md) for the manual SQL migrations, ignored local `.env`, Render variables, existing-data transfer and memory limits. The PostgreSQL backend supports Neon or Supabase; provider selection is explicit. No Supabase browser API key is required.
