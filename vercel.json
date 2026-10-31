@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/build-vercel.mjs",
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 120,
+      "includeFiles": "{db/postgres/*.sql,assets/reaction-pack/**}"
+    }
+  },
+  "rewrites": [
+    {"source": "/:path*", "destination": "/api/index"}
+  ]
+}

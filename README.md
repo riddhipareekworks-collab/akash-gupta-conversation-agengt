@@ -74,3 +74,7 @@ The previous Cloudflare deployment notes remain in [docs/cloudflare.md](docs/clo
 ## Supabase and larger conversation memory
 
 See [Supabase setup](docs/SUPABASE_SETUP.md) for the manual SQL migrations, ignored local `.env`, Render variables, existing-data transfer and memory limits. The PostgreSQL backend supports Neon or Supabase; provider selection is explicit. No Supabase browser API key is required.
+
+## Vercel deployment
+
+See [Vercel setup](docs/VERCEL_SETUP.md). The repository includes a single Node function for the existing homepage, chatbot, admin and database routes. `vercel.json` selects the correct build command and public output; do not deploy the Worker source as static files. Local `.env` values must be entered separately in Vercel settings.

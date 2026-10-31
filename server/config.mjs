@@ -1,6 +1,8 @@
 import {databaseUrl} from './database-config.mjs';
 export function loadConfig(env) {
-  const config = {...env, DATABASE_URL:databaseUrl(env), APP_ORIGIN: env.APP_ORIGIN || env.RENDER_EXTERNAL_URL,
+  const vercelHost=env.VERCEL_ENV==='production'?env.VERCEL_PROJECT_PRODUCTION_URL||env.VERCEL_URL:env.VERCEL_URL;
+  const config = {...env, DATABASE_URL:databaseUrl(env),
+    APP_ORIGIN:env.APP_ORIGIN||env.RENDER_EXTERNAL_URL||(env.VERCEL==='1'&&vercelHost?'https://'+vercelHost:undefined),
     // Visitor access is public; admin authentication is always enforced separately.
     SITE_ACCESS: 'public', ASSET_STORAGE:env.ASSET_STORAGE || 'postgres'};
   const required = ['DATABASE_URL','OPENAI_API_KEY','ADMIN_OWNER_EMAIL','ADMIN_PASSWORD','SESSION_SECRET',

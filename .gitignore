@@ -13,3 +13,7 @@ private-export/
 *.sqlite
 *.sqlite3
 *.db
+
+# Local Vercel output and account metadata
+public/
+.vercel/
