@@ -5,7 +5,10 @@ export function loadConfig(env) {
     APP_ORIGIN:env.APP_ORIGIN||env.RENDER_EXTERNAL_URL||(env.VERCEL==='1'&&vercelHost?'https://'+vercelHost:undefined),
     // Visitor access is public; admin authentication is always enforced separately.
     SITE_ACCESS: 'public', ASSET_STORAGE:env.ASSET_STORAGE || 'postgres'};
-  const required = ['DATABASE_URL','OPENAI_API_KEY','ADMIN_OWNER_EMAIL','ADMIN_PASSWORD','SESSION_SECRET',
+  config.AI_PROVIDER=env.AI_PROVIDER||'openai';
+  if(!['openai','gemini'].includes(config.AI_PROVIDER))throw new Error('AI_PROVIDER must be openai or gemini.');
+  if(config.AI_PROVIDER==='gemini'&&!/^[a-zA-Z0-9._-]+$/.test(env.GEMINI_MODEL||'gemini-3.5-flash-lite'))throw new Error('GEMINI_MODEL is invalid.');
+  const required = ['DATABASE_URL',config.AI_PROVIDER==='gemini'?'GEMINI_API_KEY':'OPENAI_API_KEY','ADMIN_OWNER_EMAIL','ADMIN_PASSWORD','SESSION_SECRET',
     'APP_ORIGIN'];
   if (config.ASSET_STORAGE === 'r2') required.push('R2_ENDPOINT','R2_BUCKET','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY');
   if (!['postgres','r2'].includes(config.ASSET_STORAGE)) throw new Error('ASSET_STORAGE must be postgres or r2.');

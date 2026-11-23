@@ -78,3 +78,7 @@ See [Supabase setup](docs/SUPABASE_SETUP.md) for the manual SQL migrations, igno
 ## Vercel deployment
 
 See [Vercel setup](docs/VERCEL_SETUP.md). The repository includes a single Node function for the existing homepage, chatbot, admin and database routes. `vercel.json` selects the correct build command and public output; do not deploy the Worker source as static files. Local `.env` values must be entered separately in Vercel settings.
+
+## Gemini free-tier setup
+
+The existing bot can use Google Gemini by setting `AI_PROVIDER=gemini`, `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.5-flash-lite` on the server. See [Gemini setup](docs/GEMINI_SETUP.md) for Vercel steps, free-tier limits and data handling. OpenAI remains the default until the provider is explicitly changed.

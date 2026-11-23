@@ -14,6 +14,7 @@ test('Supabase connection selection, bounded configuration and verified certific
   assert.throws(()=>databaseUrl({DATABASE_PROVIDER:'supabase',SUPABASE_DB_URL:'https://project.supabase.co'}),/PostgreSQL/);
   const loaded=loadConfig({...config,DATABASE_PROVIDER:'supabase',SUPABASE_DB_URL:url});
   assert.equal(loaded.CHAT_CONTEXT_MESSAGES,80);assert.equal(loaded.CHAT_CONTEXT_CHARACTERS,48000);
+  const gemini=loadConfig({...config,DATABASE_URL:url,AI_PROVIDER:'gemini',OPENAI_API_KEY:undefined,GEMINI_API_KEY:'test-only'});assert.equal(gemini.AI_PROVIDER,'gemini');assert.throws(()=>loadConfig({...config,DATABASE_URL:url,AI_PROVIDER:'gemini',GEMINI_API_KEY:undefined}),/GEMINI_API_KEY/);
   assert.throws(()=>loadConfig({...config,DATABASE_URL:url,CHAT_CONTEXT_MESSAGES:999}),/CHAT_CONTEXT_MESSAGES/);
   const pool=createPool(url,{DATABASE_SSL_CA:'certificate\\nline'});
   assert.equal(pool.options.ssl.rejectUnauthorized,true);assert.equal(pool.options.ssl.ca,'certificate\nline');
