@@ -82,3 +82,38 @@ See [Vercel setup](docs/VERCEL_SETUP.md). The repository includes a single Node 
 ## Gemini free-tier setup
 
 The existing bot can use Google Gemini by setting `AI_PROVIDER=gemini`, `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.5-flash-lite` on the server. See [Gemini setup](docs/GEMINI_SETUP.md) for Vercel steps, free-tier limits and data handling. OpenAI remains the default until the provider is explicitly changed.
+
+## Retro-Desi portfolio
+
+The existing assistant homepage now contains a React + Tailwind CSS portfolio with Framer Motion and GSAP ScrollTrigger. Edit `frontend/portfolio.jsx` and `frontend/portfolio.css`; `frontend/shell.html` retains the existing assistant and simulated checkout. `npm run build` bundles the portfolio and styles into the Worker’s self-contained homepage, then builds the original deployment artifact. Do not edit the generated `const page` directly.
+
+`npm run preview` serves a UI-only preview at http://localhost:4173. Chat and simulated checkout require the existing database-backed production server (`npm start`); the preview does not load production credentials or connect to production data.
+
+The portfolio includes cursor/tap expression changes, animated marquees, date-aware ticket filters, a pinned desktop sprint timeline, an unpinned vertical mobile timeline, a reduced-motion stacked journey, linked video cards. The Corporate Mazdoori contact section and its navigation link have been removed. Existing show data is illustrative; ended shows are not marked sold out without that status in the source records.
+
+Photography: existing expression stickers and the archival tour poster are reused. SprintTimeline uses four unique editorial era pairings: the same runner in a mustard T-shirt/charcoal jeans, blue office shirt/dark trousers, red/navy plaid shirt/blue jeans, and the original striped T-shirt/jeans. The first three are clothing-only imagegen edits of the original running pose. They are transparent 600×800 PNGs in `public/sprites/`, all aligned to baseline 784. `public/sprites/manifest.json` records source filenames, crops, masks, and dimensions. The same running stance is used throughout; the outfits are visual era interpretations, not historical photographs. Tour dates come from `data/sample-shows.json`; links and booking actions use the existing assistant APIs. The original additional video links remain below the bento grid.
+
+
+### SprintTimeline
+
+`frontend/components/SprintTimeline.jsx` replaces the previous journey section. Its GSAP context and responsive matchMedia handlers clean up pinning, transforms, and listeners when unmounted or resized. Desktop uses `pin: true`, `scrub: 0.6`, `anticipatePin: 1`, a 400vw track, and a background moving at 0.3 times the track speed. The foreground uses four unique era cutouts keyed to the active chapter, follows the sine bounce and ±6° tilt while moving, flips on upward scroll, and pops from 0.92 to 1.06 to 1 on an era change. Desktop keeps the foreground at left 44% / bottom 52px while each card reserves 38% of its width for text. Mobile stacks the copy above the collage and keeps the sprite in its own left-hand lane. Chapter buttons and a skip link support direct navigation. Mobile below 768px uses stacked cards and an unpinned moving sprite; reduced-motion users get static cards with their matching era cutouts. The Corporate Mazdoori chapter is biography only; the removed contact form stays removed.
+
+To recreate the cutouts, install `rembg[cpu]` and Pillow in a Python environment, then run `scripts/prepare-sprint-sprites.py --source /path/to/supplied/photos --world-tour-poster /absolute/path/to/assets/poster-references/world-tour.png`. It uses both `u2netp` and `u2net_human_seg` locally to preserve trousers while avoiding stage-floor remnants; originals stay untouched. No model files are deployed. Builds embed the four PNGs in the existing image registry, so `/sprites/pose_*.png` works with the Worker, Render, Vercel, and local preview. `node tests/sprint-timeline.mjs` checks timing, milestone stops, direction changes, and the actual deployed image route.
+
+
+### Street-poster styling
+
+The user-supplied show posters guide the electric-blue lettering, yellow transport sign, red nameplate, newspaper grain, Devanagari ink stamps, 16-point callouts, and auto-rickshaw hazard stripes. `frontend/street-poster.css` holds the shared treatment; `frontend/components/StreetPoster.jsx` renders the era-specific DU flyer, mock office lanyard/timesheet, winner trophy, and illustrated boarding passes. The passes are decorative scrapbook props, not live inventory claims. `frontend/components/PosterEffects.jsx` adds contextual GSAP button entrances, respecting reduced motion and React cleanup. The footer reserves 96px below its content for the floating chat launcher.
+
+The user’s poster is stored under `assets/poster-references/world-tour.png`. The running silhouette uses person segmentation plus a hand-refined source mask to preserve the outstretched arm and back leg while excluding the poster lettering; yellow print fringe is removed locally. `--only era_4_worldtour` regenerates only that asset. The sprite directory is kept in source control despite the rest of the generated Vercel public directory remaining ignored.
+
+
+### Shared runner and era outfits
+
+The selected world-tour running pose now appears in every era. The original striped outfit stays in the world-tour chapter; theatre uses mustard/charcoal, corporate uses a blue office shirt/dark trousers, and Comicstaan uses red/navy plaid with jeans. The built-in imagegen tool created the clothing edits; raw generated PNGs and the exact prompts are saved in `assets/runner-outfits/`.
+
+Run `scripts/normalize-runner-outfits.py` with Pillow, NumPy and SciPy to normalize those outputs into the existing era filenames. It preserves alpha, fits the original runner’s footprint, and aligns every foot baseline at y=784 on a 600×800 canvas. Regenerating the older source cutouts with `prepare-sprint-sprites.py` should be followed by this outfit normalization step. `public/sprites/manifest.json` records pose provenance and cache revisions.
+
+The portfolio hero lives in `frontend/components/Hero.jsx`. It uses the supplied steering-wheel poster as a transparent driver cutout, with GSAP `quickTo` steering limited to ±7° / ±12px and an 80ms stepped hover bounce. Motion is disabled for reduced-motion preferences and coarse pointers. The extracted PNG is `public/sprites/hero_driver_cutout.png`; its source, original generated output, and image-edit prompt are preserved under `assets/hero-driver/`. Run `npm run build` before restarting `npm run preview` to see source changes on port 4173.
+
+The hero backdrop now uses independent `hero_sky.png`, `hero_cloud.png`, `hero_bird.png`, and `hero_road.png` assets in `public/sprites/`. The scenery responds to pointer position and animates in stepped GSAP loops, pausing when the hero is offscreen and respecting reduced motion. Generated originals and exact prompts are preserved in `assets/hero-driver/` (`scenery-prompts.json`).

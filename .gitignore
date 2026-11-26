@@ -15,5 +15,7 @@ private-export/
 *.db
 
 # Local Vercel output and account metadata
-public/
+public/*
+!public/sprites/
+!public/sprites/**
 .vercel/

@@ -1,0 +1,26 @@
+import { build } from 'esbuild';
+import { readFile, writeFile, readdir } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const root = fileURLToPath(new URL('../', import.meta.url));
+const result = await build({entryPoints:[root+'frontend/portfolio.jsx'],bundle:true,write:false,minify:true,format:'iife',target:['es2020'],define:{'process.env.NODE_ENV':'"production"'},legalComments:'none'});
+const css = execFileSync(process.execPath,[root+'node_modules/@tailwindcss/cli/dist/index.mjs','-i',root+'frontend/portfolio.css','--minify'],{cwd:root,encoding:'utf8'});
+const posterCss=await readFile(root+'frontend/street-poster.css','utf8');
+const chatCss=await readFile(root+'frontend/chat-panel.css','utf8');
+const shell = await readFile(root+'frontend/shell.html','utf8');
+const html = shell.replace('/* PORTFOLIO_CSS */',()=>css+'\n'+posterCss+'\n'+chatCss).replace('/* PORTFOLIO_JS */',()=>result.outputFiles[0].text.replace(/<\/script/gi,'<\\/script'));
+const path=root+'worker/index.js';
+let worker=await readFile(path,'utf8');
+if(!/^const page = .*;$/m.test(worker))throw Error('Homepage declaration was not found');
+worker=worker.replace(/^const page = .*;$/m,()=> 'const page = '+JSON.stringify(html)+';');
+// Reuse the existing immutable PNG route across Worker, Render and Vercel.
+const assetDeclaration=/^const scalePortraits = (.*);$/m;
+const match=worker.match(assetDeclaration);
+if(!match)throw Error('Existing portrait asset registry was not found');
+const assets=JSON.parse(match[1]);
+const spriteNames=(await readdir(root+'public/sprites')).filter(name=>/^(?:pose|era|hero)_[a-z0-9_]+\.png$/.test(name));
+if(spriteNames.filter(name=>name.startsWith('era_')).length!==4)throw Error('Expected four unique prepared era PNGs');
+for(const name of spriteNames)assets['/sprites/'+name]=(await readFile(root+'public/sprites/'+name)).toString('base64');
+worker=worker.replace(assetDeclaration,()=> 'const scalePortraits = '+JSON.stringify(assets)+';');
+await writeFile(path,worker);
+console.log('Built React portfolio, Tailwind styles, and preserved assistant into Worker homepage.');

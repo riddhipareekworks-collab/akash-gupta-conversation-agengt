@@ -1,0 +1,249 @@
+[
+  {
+    "file": "pose_run_1.png",
+    "source": "download.jpeg",
+    "sourceCrop": [
+      80,
+      35,
+      285,
+      540
+    ],
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      205,
+      40,
+      394,
+      784
+    ],
+    "model": "u2netp",
+    "revision": "03d2f1d2c542"
+  },
+  {
+    "file": "pose_run_2.png",
+    "source": "images (1).jpeg",
+    "sourceCrop": [
+      214,
+      40,
+      390,
+      416
+    ],
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      169,
+      40,
+      431,
+      784
+    ],
+    "model": "u2net_human_seg",
+    "revision": "3e197edd90ab"
+  },
+  {
+    "file": "pose_mid_air.png",
+    "source": "images.jpeg",
+    "sourceCrop": [
+      76,
+      20,
+      246,
+      410
+    ],
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      174,
+      40,
+      426,
+      784
+    ],
+    "model": "u2netp",
+    "revision": "534154ac29dd"
+  },
+  {
+    "file": "pose_rant_stop.png",
+    "source": "download (2).jpeg",
+    "sourceCrop": [
+      24,
+      42,
+      330,
+      517
+    ],
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      93,
+      40,
+      506,
+      784
+    ],
+    "model": "u2net_human_seg",
+    "revision": "243888a57d4b"
+  },
+  {
+    "file": "era_4_worldtour.png",
+    "source": "world-tour.png",
+    "sourceCrop": [
+      70,
+      188,
+      345,
+      426
+    ],
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      40,
+      282,
+      560,
+      784
+    ],
+    "model": "person segmentation + source silhouette refinement",
+    "revision": "1cde51112bfa"
+  },
+  {
+    "file": "hero_driver_cutout.png",
+    "source": "assets/home-tour-poster.png",
+    "model": "image_gen",
+    "size": [
+      1122,
+      1402
+    ],
+    "alphaBBox": [
+      0,
+      0,
+      1122,
+      1402
+    ],
+    "revision": "d8692da587eb"
+  },
+  {
+    "file": "hero_sky.png",
+    "source": "assets/home-tour-poster.png",
+    "model": "image_gen",
+    "size": [
+      800,
+      1000
+    ],
+    "revision": "f6b1260703b9"
+  },
+  {
+    "file": "hero_cloud.png",
+    "source": "assets/home-tour-poster.png",
+    "model": "image_gen",
+    "size": [
+      700,
+      273
+    ],
+    "revision": "9b9814e65e6e"
+  },
+  {
+    "file": "hero_bird.png",
+    "source": "assets/home-tour-poster.png",
+    "model": "image_gen",
+    "size": [
+      480,
+      278
+    ],
+    "revision": "88169c585035"
+  },
+  {
+    "file": "hero_road.png",
+    "source": "assets/home-tour-poster.png",
+    "model": "image_gen",
+    "size": [
+      1200,
+      400
+    ],
+    "revision": "0456c7b44f8b"
+  },
+  {
+    "file": "era_1_theatre.png",
+    "source": "assets/runner-outfits/theatre.png",
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      40,
+      284,
+      560,
+      784
+    ],
+    "model": "built-in image_gen, identity-preserving clothing edit",
+    "poseSource": "era_4_worldtour.png",
+    "outfit": "theatre",
+    "revision": "33cb1754a5d8"
+  },
+  {
+    "file": "era_2_corporate.png",
+    "source": "assets/runner-outfits/corporate.png",
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      40,
+      283,
+      560,
+      784
+    ],
+    "model": "built-in image_gen, identity-preserving clothing edit",
+    "poseSource": "era_4_worldtour.png",
+    "outfit": "corporate",
+    "revision": "54b634802d35"
+  },
+  {
+    "file": "era_3_comicstaan.png",
+    "source": "assets/runner-outfits/comicstaan-winner.png",
+    "size": [
+      600,
+      800
+    ],
+    "baseline": 784,
+    "alphaBBox": [
+      40,
+      282,
+      560,
+      784
+    ],
+    "model": "built-in image_gen, identity-preserving clothing edit",
+    "poseSource": "era_4_worldtour.png",
+    "outfit": "comicstaan-winner",
+    "revision": "7a4ba82bed85",
+    "prop": "hand-held winner trophy"
+  },
+  {
+    "file": "hero_title.png",
+    "model": "image_gen",
+    "size": [
+      1100,
+      391
+    ],
+    "revision": "594133381701"
+  },
+  {
+    "file": "hero_tour_badge.png",
+    "model": "image_gen",
+    "size": [
+      450,
+      564
+    ],
+    "revision": "2304f3e81445"
+  }
+]

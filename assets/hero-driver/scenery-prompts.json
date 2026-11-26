@@ -1,0 +1,26 @@
+{
+  "tool": "image_gen",
+  "reference": "assets/home-tour-poster.png",
+  "assets": [
+    {
+      "key": "sky",
+      "transparent": false,
+      "prompt": "Use case: precise-object-edit. Edit target: supplied Daily Ka Kaam Hai poster. Extract/rebuild ONLY its vivid electric cobalt-blue sky background as a clean portrait website background texture. Match the original poster's saturated medium bright blue, subtle faded print texture and faint atmospheric streaks. Remove Aakash, text, logos, all badges, roads, birds and clouds; the clouds will be composited separately. Full bleed blue from edge to edge, no blank/white area. No text or objects. Portrait approximately 4:5."
+    },
+    {
+      "key": "cloud",
+      "transparent": true,
+      "prompt": "Use case: background-extraction. Edit target/reference: supplied Daily Ka Kaam Hai blue tour poster. Isolate and reconstruct ONE fluffy white cloud cluster from its sky, in the same slightly grainy photographic printed-poster style. Wide natural irregular cloud with soft feathery edges, subtle pale blue shadows and bright white highlights. Genuine transparent alpha background outside the cloud. Entire cloud visible with padding. No rectangular blue sky patch, no birds, no person, no typography, no road, no labels. This is a separate website animation cutout."
+    },
+    {
+      "key": "bird",
+      "transparent": true,
+      "prompt": "Use case: background-extraction. Edit target: supplied Daily Ka Kaam Hai poster. Extract/reconstruct ONLY the grey-and-white seagull with spread wings from the top-left of the original poster, including its crisp yellow paper-sticker outline. Match the photographic printed collage style. One entire bird in mid-flight, wings fully visible, diagonal lively flying pose, genuine transparent alpha background. No blue sky patch, no text, no person, no cloud, no extra birds. Large detailed isolated bird cutout for website animation."
+    },
+    {
+      "key": "road",
+      "transparent": true,
+      "prompt": "Use case: background-extraction. Edit target: supplied Daily Ka Kaam Hai tour poster. Isolate/reconstruct its dark charcoal winding highway ribbon with thin bright yellow edge lines and yellow center lane markings, a playful poster collage road curving from a wide foreground at lower right across the frame and looping back to a very thin distant strip at upper left. ONE wide horizontal isolated winding road ribbon with bright yellow cut-paper outline. Slight grain and printed photo-collage aesthetic like the reference. Genuine transparent alpha background everywhere off the asphalt. No scenery, no blue sky, no people, no words, no symbols, no cars. Entire road within canvas."
+    }
+  ]
+}

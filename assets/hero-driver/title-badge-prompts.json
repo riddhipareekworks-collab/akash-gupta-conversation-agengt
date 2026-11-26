@@ -1,0 +1,15 @@
+{
+  "tool": "image_gen",
+  "assets": [
+    {
+      "key": "title",
+      "ref": "/var/folders/ns/1pr1sd012k5btzgtywk3xw6c0000gn/T/TemporaryItems/NSIRD_screencaptureui_daFSnn/Screenshot 2026-11-25 at 5.46.22 PM.png",
+      "prompt": "Use case: background-extraction. Edit target: attached cropped Daily Ka Kaam Hai poster header. Isolate this exact title lockup into a high-resolution transparent PNG: red rounded name tab with warm-yellow condensed uppercase AAKASH GUPTA above yellow Indian license plate, small blue flag and IND TOUR on left, black tall condensed DAILY KA KAAM HAI across plate, thin black border, two tiny bolt holes. Beneath plate retain the small yellow tagline A STAND-UP COMEDY SPECIAL. Keep all text spelled exactly as the reference. Preserve the slightly tilted hand-made printed poster aesthetic, but sharpen the low-resolution lettering naturally. Remove ALL blue sky, clouds and bird fragments. True alpha transparency around the complete red/yellow lockup and between the plate and tagline. No added backgrounds, shadow or scenery. Wide horizontal composition, tight framing with a little transparent padding."
+    },
+    {
+      "key": "tour_badge",
+      "ref": "/Users/riddhipareek/Desktop/Screenshot 2026-11-25 at 5.46.07 PM.png",
+      "prompt": "Use case: text-localization and background-extraction. Edit target: supplied crop of a roadside INDIA TOUR 2025 marker sticker. Isolate and reconstruct ONLY that full white-and-yellow rounded Indian highway milestone marker as a crisp transparent PNG. Change year 2025 to 2026. Exact text: black 8 in yellow domed cap; bold black INDIA on next line, TOUR on next line, 2026 on next line, small black starburst near bottom. Preserve this slightly tilted white paper road milestone shape, yellow top, thin bright-yellow cutout outline and lightly weathered print texture. Make it clean, detailed and readable with the complete sticker visible and generous transparency around it. No blue sky, no highway, no person, no hand, no clothing, no other text. Genuine alpha transparent background. Portrait approximately 3:4."
+    }
+  ]
+}

@@ -1,4 +1,6 @@
 import {mkdir,writeFile,access} from 'node:fs/promises';
+// Compile the same UI used by the local preview before packaging the function.
+import './build-portfolio.mjs';
 // Only this generated directory is public. Application source and .env stay private.
 const publicDir=new URL('../public/',import.meta.url);
 await mkdir(publicDir,{recursive:true});
