@@ -13,4 +13,4 @@ export async function testPool() {
     async end(){await db.close();},
   };
 }
-export const config={APP_ORIGIN:'https://test.local',ADMIN_OWNER_EMAIL:'owner@example.com',ADMIN_PASSWORD:'test-only-admin-password',SESSION_SECRET:'test-only-secret-at-least-32-characters',TEAM_PASSWORD:'test-only-team-password',SITE_ACCESS:'private',OPENAI_API_KEY:'test-only',R2_BUCKET:'test-bucket',R2_ENDPOINT:'https://test.r2.cloudflarestorage.com',R2_ACCESS_KEY_ID:'test',R2_SECRET_ACCESS_KEY:'test'};
+export const config={ADMIN_ACCESS:'private',APP_ORIGIN:'https://test.local',ADMIN_OWNER_EMAIL:'owner@example.com',ADMIN_PASSWORD:'test-only-admin-password',SESSION_SECRET:'test-only-secret-at-least-32-characters',TEAM_PASSWORD:'test-only-team-password',SITE_ACCESS:'private',OPENAI_API_KEY:'test-only',R2_BUCKET:'test-bucket',R2_ENDPOINT:'https://test.r2.cloudflarestorage.com',R2_ACCESS_KEY_ID:'test',R2_SECRET_ACCESS_KEY:'test'};

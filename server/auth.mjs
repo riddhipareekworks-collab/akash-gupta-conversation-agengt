@@ -36,6 +36,16 @@ function loginPage(next, error = '') {
 export function createAuth(config, pool) {
   return async function auth(request, ip = 'unknown') {
     const url = new URL(request.url), session = readSession(request, config);
+    // Public administration was explicitly chosen by the site owner.
+    if (config.ADMIN_ACCESS === 'public') {
+      if (url.pathname === '/login' || url.pathname === '/logout') {
+        return {response:new Response(null,{status:303,headers:{Location:url.pathname === '/login' ? safeNext(url.searchParams.get('next') || '/admin/sessions') : '/', 'Cache-Control':'no-store'}})};
+      }
+      const headers = new Headers(request.headers);
+      for (const name of [...headers.keys()]) if (name.startsWith('oai-')) headers.delete(name);
+      headers.set('oai-authenticated-user-email',config.ADMIN_OWNER_EMAIL);
+      return {request:new Request(request,{headers})};
+    }
     if (url.pathname === '/logout') {
       if (request.method === 'GET') return { response: new Response('<!doctype html><title>Sign out</title><form method="post"><button>Sign out of this device</button></form>', {headers:{'Content-Type':'text/html','Cache-Control':'no-store'}}) };
       if (request.method !== 'POST' || request.headers.get('origin') !== config.APP_ORIGIN) return {response: new Response('Forbidden', {status:403})};

@@ -3,8 +3,9 @@ export function loadConfig(env) {
   const vercelHost=env.VERCEL_ENV==='production'?env.VERCEL_PROJECT_PRODUCTION_URL||env.VERCEL_URL:env.VERCEL_URL;
   const config = {...env, DATABASE_URL:databaseUrl(env),
     APP_ORIGIN:env.APP_ORIGIN||env.RENDER_EXTERNAL_URL||(env.VERCEL==='1'&&vercelHost?'https://'+vercelHost:undefined),
-    // Visitor access is public; admin authentication is always enforced separately.
-    SITE_ACCESS: 'public', ASSET_STORAGE:env.ASSET_STORAGE || 'postgres'};
+    // Owner-approved public admin access; private mode remains available.
+    SITE_ACCESS: 'public', ADMIN_ACCESS:env.ADMIN_ACCESS||'public', ASSET_STORAGE:env.ASSET_STORAGE || 'postgres'};
+  if(!['public','private'].includes(config.ADMIN_ACCESS))throw new Error('ADMIN_ACCESS must be public or private.');
   config.AI_PROVIDER=env.AI_PROVIDER||'openai';
   if(!['openai','gemini'].includes(config.AI_PROVIDER))throw new Error('AI_PROVIDER must be openai or gemini.');
   if(config.AI_PROVIDER==='gemini'&&!/^[a-zA-Z0-9._-]+$/.test(env.GEMINI_MODEL||'gemini-3.5-flash-lite'))throw new Error('GEMINI_MODEL is invalid.');
